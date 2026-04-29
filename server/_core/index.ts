@@ -11,6 +11,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { registerCompareStreamRoute } from "../compareStream";
 import recommendStreamRouter from "../recommendStream";
+import coverageRouter from "../coverageRouter";
 import { registerPlansRoute, prewarmPlanCache } from "../plansRouter";
 import { seedCmsDataSources, startCmsPipelineCron } from "../cmsPipeline";
 
@@ -95,6 +96,8 @@ async function startServer() {
   registerCompareStreamRoute(app);
   // Streaming Plan Recommender AI narrative endpoint
   app.use("/api", recommendStreamRouter);
+  // Coverage lookup (autocomplete + check) - additive, used by guided UX
+  app.use("/api/coverage", coverageRouter);
   // tRPC API
   app.use(
     "/api/trpc",
