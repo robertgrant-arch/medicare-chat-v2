@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, ReactNode } from 'react';
+import { parseCoverageChips, coverageChipsEnabled } from '../lib/coverageChips';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -351,9 +352,25 @@ export default function ChatWidget() {
                     wordBreak: 'break-word',
                   }}
                 >
-                  {msg.content ? renderMarkdown(msg.content) : (
-                    <span style={{ color: '#94a3b8' }}>Thinking...</span>
+{(() => {
+              if (!msg.content) {
+                return (<span style={{ color: '#94a3b8' }}>Thinking...</span>);
+              }
+              if (msg.role === 'assistant' && coverageChipsEnabled()) {
+                const { body, chips } = parseCoverageChips(msg.content);
+                return (<>
+                  {renderMarkdown(body)}
+                  {chips.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
+                      {chips.map((c, ci) => (
+                        <button key={ci} type="button" onClick={() => { setInput(c.value); setTimeout(() => { (document.querySelector('form') as HTMLFormElement | null)?.requestSubmit(); }, 0); }} disabled={isLoading} style={{ padding: '6px 12px', borderRadius: '999px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#1e293b', fontSize: '13px', cursor: isLoading ? 'not-allowed' : 'pointer' }}>{c.label}</button>
+                      ))}
+                    </div>
                   )}
+                </>);
+              }
+              return renderMarkdown(msg.content);
+            })()}
                 </div>
               </div>
             ))}
